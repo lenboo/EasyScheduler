@@ -64,16 +64,12 @@ public class TaskManager {
         return new FlinkTask(props, logger);
       case PYTHON:
         return new PythonTask(props, logger);
-      case DEPENDENT:
-        return new DependentTask(props, logger);
       case HTTP:
         return new HttpTask(props, logger);
       case DATAX:
         return new DataxTask(props, logger);
       case SQOOP:
         return new SqoopTask(props, logger);
-      case CONDITIONS:
-        return new ConditionsTask(props, logger);
       default:
         logger.error("unsupport task type: {}", taskType);
         throw new IllegalArgumentException("not support task type");
