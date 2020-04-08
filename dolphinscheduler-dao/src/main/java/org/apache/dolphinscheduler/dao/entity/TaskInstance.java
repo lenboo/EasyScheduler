@@ -446,15 +446,15 @@ public class TaskInstance {
     }
 
     public Boolean isSubProcess(){
-        return TaskType.SUB_PROCESS.getDescp().equals(this.taskType.toUpperCase());
+        return TaskType.SUB_PROCESS.getDescp().equals(this.taskType.toLowerCase());
     }
 
     public Boolean isDependTask(){
-        return TaskType.DEPENDENT.getDescp().equals(this.taskType.toUpperCase());
+        return TaskType.DEPENDENT.getDescp().equals(this.taskType.toLowerCase());
     }
 
     public Boolean isConditionsTask(){
-        return TaskType.CONDITIONS.getDescp().equals(this.taskType.toUpperCase());
+        return TaskType.CONDITIONS.getDescp().equals(this.taskType.toLowerCase());
     }
 
     public Boolean needSubmitToTaskQueue(){

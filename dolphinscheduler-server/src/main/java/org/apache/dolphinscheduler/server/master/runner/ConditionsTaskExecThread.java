@@ -22,6 +22,7 @@ import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 import org.apache.dolphinscheduler.common.model.DependentItem;
 import org.apache.dolphinscheduler.common.model.DependentTaskModel;
 import org.apache.dolphinscheduler.common.task.dependent.DependentParameters;
+import org.apache.dolphinscheduler.common.thread.ThreadUtils;
 import org.apache.dolphinscheduler.common.utils.DependentUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.LoggerUtils;
@@ -35,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 public class ConditionsTaskExecThread extends MasterBaseTaskExecThread {
 
@@ -72,14 +74,14 @@ public class ConditionsTaskExecThread extends MasterBaseTaskExecThread {
                 taskInstance.getProcessInstanceId(),
                 taskInstance.getId()));
 
-        String threadLoggerInfoName = String.format(Constants.TASK_LOG_INFO_FORMAT, processService.formatTaskAppId(this.taskInstance));
-        Thread.currentThread().setName(threadLoggerInfoName);
     }
 
     @Override
     public Boolean submitWaitComplete() {
         try{
             this.taskInstance = submit();
+            String threadLoggerInfoName = String.format(Constants.TASK_LOG_INFO_FORMAT, processService.formatTaskAppId(this.taskInstance));
+            Thread.currentThread().setName(threadLoggerInfoName);
             initTaskParameters();
             logger.info("dependent task start");
             waitTaskQuit();
