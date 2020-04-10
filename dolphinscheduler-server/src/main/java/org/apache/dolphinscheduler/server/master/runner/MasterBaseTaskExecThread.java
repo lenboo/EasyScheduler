@@ -43,7 +43,8 @@ public class MasterBaseTaskExecThread implements Callable<Boolean> {
     /**
      * logger of MasterBaseTaskExecThread
      */
-    protected Logger logger;
+    protected Logger logger = LoggerFactory.getLogger(getClass());
+
 
     /**
      * process service
