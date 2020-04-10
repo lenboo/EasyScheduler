@@ -16,7 +16,10 @@
  */
 package org.apache.dolphinscheduler.server.master.runner;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.sift.SiftingAppender;
 import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.common.log.TaskLogDiscriminator;
 import org.apache.dolphinscheduler.common.utils.LoggerUtils;
 import org.apache.dolphinscheduler.dao.AlertDao;
 import org.apache.dolphinscheduler.dao.entity.ProcessInstance;
@@ -165,6 +168,36 @@ public class MasterBaseTaskExecThread implements Callable<Boolean> {
     @Override
     public Boolean call() throws Exception {
         return submitWaitComplete();
+    }
+
+    /**
+     * get task log path
+     * @return log path
+     */
+    public String getTaskLogPath(TaskInstance task) {
+        String logPath;
+        try{
+            String baseLog = ((TaskLogDiscriminator) ((SiftingAppender) ((LoggerContext) LoggerFactory.getILoggerFactory())
+                    .getLogger("ROOT")
+                    .getAppender("TASKLOGFILE"))
+                    .getDiscriminator()).getLogBase();
+            if (baseLog.startsWith(Constants.SINGLE_SLASH)){
+                logPath =  baseLog + Constants.SINGLE_SLASH +
+                        task.getProcessDefinitionId() + Constants.SINGLE_SLASH  +
+                        task.getProcessInstanceId() + Constants.SINGLE_SLASH  +
+                        task.getId() + ".log";
+            }else{
+                logPath = System.getProperty("user.dir") + Constants.SINGLE_SLASH +
+                        baseLog +  Constants.SINGLE_SLASH +
+                        task.getProcessDefinitionId() + Constants.SINGLE_SLASH  +
+                        task.getProcessInstanceId() + Constants.SINGLE_SLASH  +
+                        task.getId() + ".log";
+            }
+        }catch (Exception e){
+            logger.error("logger" + e);
+            logPath = "";
+        }
+        return logPath;
     }
 
 }

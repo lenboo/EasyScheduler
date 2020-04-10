@@ -65,14 +65,6 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
      */
     public DependentTaskExecThread(TaskInstance taskInstance, ProcessInstance processInstance) {
         super(taskInstance, processInstance);
-        String threadLoggerInfoName = String.format(Constants.TASK_LOG_INFO_FORMAT, processService.formatTaskAppId(this.taskInstance));
-        Thread.currentThread().setName(threadLoggerInfoName);
-
-        logger = LoggerFactory.getLogger(LoggerUtils.buildTaskId(LoggerUtils.TASK_LOGGER_INFO_PREFIX,
-                taskInstance.getProcessDefinitionId(),
-                taskInstance.getProcessInstanceId(),
-                taskInstance.getId()));
-
 
     }
 
@@ -82,6 +74,12 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
         try{
             logger.info("dependent task start");
             this.taskInstance = submit();
+            logger = LoggerFactory.getLogger(LoggerUtils.buildTaskId(LoggerUtils.TASK_LOGGER_INFO_PREFIX,
+                    taskInstance.getProcessDefinitionId(),
+                    taskInstance.getProcessInstanceId(),
+                    taskInstance.getId()));
+            String threadLoggerInfoName = String.format(Constants.TASK_LOG_INFO_FORMAT, processService.formatTaskAppId(this.taskInstance));
+            Thread.currentThread().setName(threadLoggerInfoName);
             initTaskParameters();
             initDependParameters();
             waitTaskQuit();
@@ -160,8 +158,8 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
                 logger.error("exception",e);
                 if (processInstance != null) {
                     logger.error("wait task quit failed, instance id:{}, task id:{}",
-                    processInstance.getId(), taskInstance.getId());
-            }
+                            processInstance.getId(), taskInstance.getId());
+                }
             }
         }
         return true;
@@ -175,7 +173,7 @@ public class DependentTaskExecThread extends MasterBaseTaskExecThread {
     }
 
     private void initTaskParameters() {
-        taskInstance.setLogPath(processService.getTaskLogPath(taskInstance));
+        taskInstance.setLogPath(getTaskLogPath(taskInstance));
         taskInstance.setHost(OSUtils.getHost());
         taskInstance.setState(ExecutionStatus.RUNNING_EXEUTION);
         taskInstance.setStartTime(new Date());
