@@ -48,11 +48,6 @@ public class ConditionsTaskExecThread extends MasterBaseTaskExecThread {
     private DependentParameters dependentParameters;
 
     /**
-     *  log record
-     */
-    protected Logger logger;
-
-    /**
      * complete task map
      */
     private Map<String, ExecutionStatus> completeTaskList = new ConcurrentHashMap<>();
@@ -70,8 +65,6 @@ public class ConditionsTaskExecThread extends MasterBaseTaskExecThread {
      */
     public ConditionsTaskExecThread(TaskInstance taskInstance, ProcessInstance processInstance) {
         super(taskInstance, processInstance);
-
-
     }
 
     @Override
