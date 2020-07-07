@@ -16,8 +16,6 @@
  */
 package org.apache.dolphinscheduler.server.worker.task;
 
-import com.sun.jna.platform.win32.Kernel32;
-import com.sun.jna.platform.win32.WinNT;
 import org.apache.dolphinscheduler.common.Constants;
 import org.apache.dolphinscheduler.common.enums.ExecutionStatus;
 import org.apache.dolphinscheduler.common.thread.Stopper;
@@ -26,7 +24,6 @@ import org.apache.dolphinscheduler.common.utils.HadoopUtils;
 import org.apache.dolphinscheduler.common.utils.LoggerUtils;
 import org.apache.dolphinscheduler.common.utils.OSUtils;
 import org.apache.dolphinscheduler.common.utils.StringUtils;
-import org.apache.dolphinscheduler.common.utils.process.ProcessBuilderForWin32;
 import org.apache.dolphinscheduler.server.entity.TaskExecutionContext;
 import org.apache.dolphinscheduler.server.utils.ProcessUtils;
 import org.apache.dolphinscheduler.server.worker.cache.TaskExecutionContextCacheManager;
@@ -110,24 +107,7 @@ public abstract class AbstractCommandExecutor {
         List<String> command = new LinkedList<>();
 
         if (OSUtils.isWindows()) {
-            //init process builder
-            ProcessBuilderForWin32 processBuilder = new ProcessBuilderForWin32();
-            // setting up a working directory
-            processBuilder.directory(new File(taskExecutionContext.getExecutePath()));
-            // setting up a username and password
-            processBuilder.user(taskExecutionContext.getTenantCode(), StringUtils.EMPTY);
-            // merge error information to standard output stream
-            processBuilder.redirectErrorStream(true);
-
-            // setting up user to run commands
-            command.add(commandInterpreter());
-            command.add("/c");
-            command.addAll(commandOptions());
-            command.add(commandFile);
-
-            // setting commands
-            processBuilder.command(command);
-            process = processBuilder.start();
+            throw new RuntimeException("not support windows !");
         } else {
             //init process builder
             ProcessBuilder processBuilder = new ProcessBuilder();
@@ -498,8 +478,9 @@ public abstract class AbstractCommandExecutor {
             f.setAccessible(true);
 
             if (OSUtils.isWindows()) {
-                WinNT.HANDLE handle = (WinNT.HANDLE) f.get(process);
-                processId = Kernel32.INSTANCE.GetProcessId(handle);
+//                WinNT.HANDLE handle = (WinNT.HANDLE) f.get(process);
+//                processId = Kernel32.INSTANCE.GetProcessId(handle);
+                return 0;
             } else {
                 processId = f.getInt(process);
             }
