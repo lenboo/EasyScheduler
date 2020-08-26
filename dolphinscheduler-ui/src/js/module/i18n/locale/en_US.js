@@ -466,7 +466,7 @@ export default {
   'Edit token': 'Edit token',
   'Please enter the IP address separated by commas': 'Please enter the IP address separated by commas',
   'Note: Multiple IP addresses have been comma separated': 'Note: Multiple IP addresses have been comma separated',
-  'Failure time': 'Failure time',
+  'Expiration time': 'Expiration time',
   User: 'User',
   'Please enter token': 'Please enter token',
   'Generate token': 'Generate token',
@@ -591,8 +591,8 @@ export default {
   'Branch flow': 'Branch flow',
   'Cannot select the same node for successful branch flow and failed branch flow': 'Cannot select the same node for successful branch flow and failed branch flow',
   'Successful branch flow and failed branch flow are required': 'conditions node Successful and failed branch flow are required',
-  'Unauthorized or deleted resources': 'Unauthorized or deleted resources',
-  'Please delete all non-existent resources': 'Please delete all non-existent resources',
+  'No resources exist': 'No resources exist',
+  'Please delete all non-existing resources': 'Please delete all non-existing resources',
   'The Worker group no longer exists, please select the correct Worker group!': 'The Worker group no longer exists, please select the correct Worker group!',
   'Please confirm whether the workflow has been saved before downloading': 'Please confirm whether the workflow has been saved before downloading',
   'User name length is between 3 and 39': 'User name length is between 3 and 39',
@@ -601,5 +601,5 @@ export default {
   'Connection name': 'Connection name',
   'Current connection settings': 'Current connection settings',
   'Please save the DAG before formatting': 'Please save the DAG before formatting',
-  'This canvas is abnormal and the node connection cannot be made. Please save or exit the current workflow': 'This canvas is abnormal and the node connection cannot be made. Please save or exit the current workflow'
+  'The workflow canvas is abnormal and cannot be saved, please recreate': 'The workflow canvas is abnormal and cannot be saved, please recreate'
 }

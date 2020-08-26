@@ -30,6 +30,7 @@ import org.apache.dolphinscheduler.api.exceptions.ServiceException;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.common.enums.ProgramType;
 import org.apache.dolphinscheduler.common.enums.ResourceType;
 import org.apache.dolphinscheduler.common.utils.*;
 import org.apache.dolphinscheduler.dao.entity.*;
@@ -102,7 +103,10 @@ public class ResourcesService extends BaseService {
             return result;
         }
         String fullName = currentDir.equals("/") ? String.format("%s%s",currentDir,name):String.format("%s/%s",currentDir,name);
-
+        result = verifyResourceName(fullName,type,loginUser);
+        if (!result.getCode().equals(Status.SUCCESS.getCode())) {
+            return result;
+        }
         if (pid != -1) {
             Resource parentResource = resourcesMapper.selectById(pid);
 
@@ -115,13 +119,6 @@ public class ResourcesService extends BaseService {
                 putMsg(result, Status.USER_NO_OPERATION_PERM);
                 return result;
             }
-        }
-
-
-        if (checkResourceExists(fullName, 0, type.ordinal())) {
-            logger.error("resource directory {} has exist, can't recreate", fullName);
-            putMsg(result, Status.RESOURCE_EXIST);
-            return result;
         }
 
         Date now = new Date();
@@ -436,14 +433,38 @@ public class ResourcesService extends BaseService {
                 if (CollectionUtils.isNotEmpty(childrenResource)) {
                     String matcherFullName = Matcher.quoteReplacement(fullName);
                     List<Resource> childResourceList = new ArrayList<>();
-                    List<Resource> resourceList = resourcesMapper.listResourceByIds(childrenResource.toArray(new Integer[childrenResource.size()]));
+                    Integer[] childResIdArray = childrenResource.toArray(new Integer[childrenResource.size()]);
+                    List<Resource> resourceList = resourcesMapper.listResourceByIds(childResIdArray);
                     childResourceList = resourceList.stream().map(t -> {
                         t.setFullName(t.getFullName().replaceFirst(originFullName, matcherFullName));
                         t.setUpdateTime(now);
                         return t;
                     }).collect(Collectors.toList());
                     resourcesMapper.batchUpdateResource(childResourceList);
+
+                    if (ResourceType.UDF.equals(resource.getType())) {
+                        List<UdfFunc> udfFuncs = udfFunctionMapper.listUdfByResourceId(childResIdArray);
+                        if (CollectionUtils.isNotEmpty(udfFuncs)) {
+                            udfFuncs = udfFuncs.stream().map(t -> {
+                                t.setResourceName(t.getResourceName().replaceFirst(originFullName, matcherFullName));
+                                t.setUpdateTime(now);
+                                return t;
+                            }).collect(Collectors.toList());
+                            udfFunctionMapper.batchUpdateUdfFunc(udfFuncs);
+                        }
+                    }
                 }
+            } else if (ResourceType.UDF.equals(resource.getType())) {
+                List<UdfFunc> udfFuncs = udfFunctionMapper.listUdfByResourceId(new Integer[]{resourceId});
+                if (CollectionUtils.isNotEmpty(udfFuncs)) {
+                    udfFuncs = udfFuncs.stream().map(t -> {
+                        t.setResourceName(fullName);
+                        t.setUpdateTime(now);
+                        return t;
+                    }).collect(Collectors.toList());
+                    udfFunctionMapper.batchUpdateUdfFunc(udfFuncs);
+                }
+
             }
 
             putMsg(result, Status.SUCCESS);
@@ -630,21 +651,33 @@ public class ResourcesService extends BaseService {
     }
 
     /**
-     * query resource list
+     * query resource list by program type
      *
      * @param loginUser login user
      * @param type resource type
      * @return resource list
      */
-    public Map<String, Object> queryResourceJarList(User loginUser, ResourceType type) {
+    public Map<String, Object> queryResourceByProgramType(User loginUser, ResourceType type, ProgramType programType) {
 
         Map<String, Object> result = new HashMap<>(5);
+        String suffix = ".jar";
         int userId = loginUser.getId();
         if(isAdmin(loginUser)){
             userId = 0;
         }
+        if (programType != null) {
+            switch (programType) {
+                case JAVA:
+                    break;
+                case SCALA:
+                    break;
+                case PYTHON:
+                    suffix = ".py";
+                    break;
+            }
+        }
         List<Resource> allResourceList = resourcesMapper.queryResourceListAuthored(userId, type.ordinal(),0);
-        List<Resource> resources = new ResourceFilter(".jar",new ArrayList<>(allResourceList)).filter();
+        List<Resource> resources = new ResourceFilter(suffix,new ArrayList<>(allResourceList)).filter();
         Visitor resourceTreeVisitor = new ResourceTreeVisitor(resources);
         result.put(Constants.DATA_LIST, resourceTreeVisitor.visit().getChildren());
         putMsg(result,Status.SUCCESS);

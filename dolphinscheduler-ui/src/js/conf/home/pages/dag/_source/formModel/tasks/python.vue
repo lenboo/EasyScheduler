@@ -129,7 +129,7 @@
 
         // noRes
         if (this.noRes.length>0) {
-          this.$message.warning(`${i18n.$t('Please delete all non-existent resources')}`)
+          this.$message.warning(`${i18n.$t('Please delete all non-existing resources')}`)
           return false
         }
 
@@ -208,10 +208,8 @@
           resourceIdArr = isResourceId.map(item=>{
             return item.id
           })
-          Array.prototype.diff = function(a) {
-            return this.filter(function(i) {return a.indexOf(i) < 0;});
-          };
-          let diffSet = this.resourceList.diff(resourceIdArr);
+          let diffSet
+          diffSet = _.xorWith(this.resourceList, resourceIdArr, _.isEqual)
           let optionsCmp = []
           if(diffSet.length>0) {
             diffSet.forEach(item=>{
@@ -224,19 +222,21 @@
           }
           let noResources = [{
             id: -1,
-            name: $t('Unauthorized or deleted resources'),
-            fullName: '/'+$t('Unauthorized or deleted resources'),
+            name: $t('No resources exist'),
+            fullName: '/'+$t('No resources exist'),
+            isDisabled: true,
             children: []
           }]
           if(optionsCmp.length>0) {
             this.allNoResources = optionsCmp
             optionsCmp = optionsCmp.map(item=>{
-              return {id: item.id,name: item.name,fullName: item.res}
+              return {id: item.id,name: item.name || item.res,fullName: item.res}
             })
             optionsCmp.forEach(item=>{
               item.isNew = true
             })
             noResources[0].children = optionsCmp
+            this.resourceOptions = _.filter(this.resourceOptions, o=> { return o.id!==-1 })
             this.resourceOptions = this.resourceOptions.concat(noResources)
           }
         }
@@ -322,9 +322,12 @@
       }
     },
     mounted () {
-      setTimeout(() => {
-        this._handlerEditor()
-      }, 200)
+      // Added delay loading in script input box
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this._handlerEditor()
+        }, 350)
+      })
     },
     destroyed () {
       editor.toTextArea() // Uninstall

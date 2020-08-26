@@ -20,11 +20,7 @@
       <div slot="text">{{$t('Script')}}</div>
       <div slot="content">
         <div class="from-mirror">
-          <textarea
-            id="code-shell-mirror"
-            name="code-shell-mirror"
-            style="opacity: 0">
-          </textarea>
+          <textarea id="code-shell-mirror" name="code-shell-mirror" style="opacity: 0"></textarea>
           <a class="ans-modal-box-max">
             <em class="ans-icon-max" @click="setEditorVal"></em>
           </a>
@@ -169,7 +165,7 @@
         }
         // noRes
         if (this.noRes.length>0) {
-          this.$message.warning(`${i18n.$t('Please delete all non-existent resources')}`)
+          this.$message.warning(`${i18n.$t('Please delete all non-existing resources')}`)
           return false
         }
         // Process resourcelist
@@ -250,10 +246,8 @@
           resourceIdArr = isResourceId.map(item=>{
             return item.id
           })
-          Array.prototype.diff = function(a) {
-            return this.filter(function(i) {return a.indexOf(i) < 0;});
-          };
-          let diffSet = this.resourceList.diff(resourceIdArr);
+          let diffSet
+          diffSet = _.xorWith(this.resourceList, resourceIdArr, _.isEqual)
           let optionsCmp = []
           if(diffSet.length>0) {
             diffSet.forEach(item=>{
@@ -266,19 +260,21 @@
           }
           let noResources = [{
             id: -1,
-            name: $t('Unauthorized or deleted resources'),
-            fullName: '/'+$t('Unauthorized or deleted resources'),
+            name: $t('No resources exist'),
+            fullName: '/'+$t('No resources exist'),
+            isDisabled: true,
             children: []
           }]
           if(optionsCmp.length>0) {
             this.allNoResources = optionsCmp
             optionsCmp = optionsCmp.map(item=>{
-              return {id: item.id,name: item.name,fullName: item.res}
+              return {id: item.id,name: item.name || item.res,fullName: item.res}
             })
             optionsCmp.forEach(item=>{
               item.isNew = true
             })
             noResources[0].children = optionsCmp
+            this.options = _.filter(this.options, o=> { return o.id!==-1 })
             this.options = this.options.concat(noResources)
           }
         }
@@ -365,9 +361,11 @@
     },
     mounted () {
       // Added delay loading in script input box
-      setTimeout(() => {
-        this._handlerEditor()
-      }, 350)
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this._handlerEditor()
+        }, 350)
+      })
     },
     destroyed () {
       if (editor) {

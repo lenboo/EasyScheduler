@@ -75,13 +75,20 @@ public class AccessTokenService extends BaseService {
 
     /**
      * create token
+     *
+     * @param loginUser
      * @param userId token for user
      * @param expireTime token expire time
      * @param token token string
      * @return create result code
      */
-    public Map<String, Object> createToken(int userId, String expireTime, String token) {
+    public Map<String, Object> createToken(User loginUser, int userId, String expireTime, String token) {
         Map<String, Object> result = new HashMap<>(5);
+
+        if (!hasPerm(loginUser,userId)){
+            putMsg(result, Status.USER_NO_OPERATION_PERM);
+            return result;
+        }
 
         if (userId <= 0) {
             throw new IllegalArgumentException("User id should not less than or equals to 0.");
@@ -107,12 +114,19 @@ public class AccessTokenService extends BaseService {
 
     /**
      * generate token
+     *
+     * @param loginUser
      * @param userId token for user
      * @param expireTime token expire time
      * @return token string
      */
-    public Map<String, Object> generateToken(int userId, String expireTime) {
+    public Map<String, Object> generateToken(User loginUser, int userId, String expireTime) {
         Map<String, Object> result = new HashMap<>(5);
+        if (!hasPerm(loginUser,userId)){
+            putMsg(result, Status.USER_NO_OPERATION_PERM);
+            return result;
+        }
+
         String token = EncryptionUtils.getMd5(userId + expireTime + String.valueOf(System.currentTimeMillis()));
         result.put(Constants.DATA_LIST, token);
         putMsg(result, Status.SUCCESS);
@@ -136,8 +150,7 @@ public class AccessTokenService extends BaseService {
             return result;
         }
 
-        if (loginUser.getId() != accessToken.getUserId() &&
-                loginUser.getUserType() != UserType.ADMIN_USER) {
+        if (!hasPerm(loginUser,accessToken.getUserId())){
             putMsg(result, Status.USER_NO_OPERATION_PERM);
             return result;
         }
@@ -149,14 +162,21 @@ public class AccessTokenService extends BaseService {
 
     /**
      * update token by id
+     *
+     * @param loginUser
      * @param id token id
      * @param userId token for user
      * @param expireTime token expire time
      * @param token token string
      * @return update result code
      */
-    public Map<String, Object> updateToken(int id,int userId, String expireTime, String token) {
+    public Map<String, Object> updateToken(User loginUser, int id, int userId, String expireTime, String token) {
         Map<String, Object> result = new HashMap<>(5);
+
+        if (!hasPerm(loginUser,userId)){
+            putMsg(result, Status.USER_NO_OPERATION_PERM);
+            return result;
+        }
 
         AccessToken accessToken = accessTokenMapper.selectById(id);
         if (accessToken == null) {

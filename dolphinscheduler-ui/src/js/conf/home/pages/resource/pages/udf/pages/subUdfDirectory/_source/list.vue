@@ -43,7 +43,7 @@
           <th scope="col" width="140">
             <span>{{$t('Update Time')}}</span>
           </th>
-          <th scope="col" width="110">
+          <th scope="col" width="130">
             <span>{{$t('Operation')}}</span>
           </th>
         </tr>
@@ -80,6 +80,16 @@
                     type="info"
                     shape="circle"
                     size="xsmall"
+                    data-toggle="tooltip"
+                    :title="$t('ReUpload File')"
+                    :disabled="item.directory? true: false"
+                    @click="_reUpload(item)"
+                    icon="ans-icon-upload">
+            </x-button>
+            <x-button
+                    type="info"
+                    shape="circle"
+                    size="xsmall"
                     icon="ans-icon-play"
                     data-toggle="tooltip"
                     :title="$t('Rename')"
@@ -98,11 +108,11 @@
             <x-poptip
                     :ref="'poptip-' + $index"
                     placement="bottom-end"
-                    width="90">
+                    width="190">
               <p>{{$t('Delete?')}}</p>
               <div style="text-align: right; margin: 0;padding-top: 4px;">
                 <x-button type="text" size="xsmall" shape="circle" @click="_closeDelete($index)">{{$t('Cancel')}}</x-button>
-                <x-button type="primary" size="xsmall" shape="circle" @click="_delete(item,$index)">{{$t('Confirm')}}</x-button>
+                <x-button type="primary" size="xsmall" shape="circle" :loading="spinnerLoading" @click="_delete(item,$index)">{{spinnerLoading ? 'Loading' : $t('Confirm')}}</x-button>
               </div>
               <template slot="reference">
                 <x-button
@@ -127,13 +137,15 @@
   import mRename from './rename'
   import { downloadFile } from '@/module/download'
   import { bytesToSize } from '@/module/util/util'
+  import { findComponentDownward } from '@/module/util'
   import localStore from '@/module/util/localStorage'
 
   export default {
     name: 'udf-manage-list',
     data () {
       return {
-        list: []
+        list: [],
+        spinnerLoading: false
       }
     },
     props: {
@@ -155,6 +167,12 @@
           this.$router.push({ path: `/resource/udf/subUdfDirectory/${item.id}` })
         }
       },
+      /**
+       * File Upload
+       */
+      _reUpload (item) {
+        findComponentDownward(this.$root, 'roof-nav')._fileChildReUpload('UDF', item, this.$route.params.id)
+      },
       _rtSize (val) {
         return bytesToSize(parseInt(val))
       },
@@ -162,15 +180,18 @@
         this.$refs[`poptip-${i}`][0].doClose()
       },
       _delete (item, i) {
+        this.spinnerLoading = true
         this.deleteResource({
           id: item.id
         }).then(res => {
           this.$refs[`poptip-${i}`][0].doClose()
           this.$emit('on-update')
           this.$message.success(res.msg)
+          this.spinnerLoading = false
         }).catch(e => {
           this.$refs[`poptip-${i}`][0].doClose()
           this.$message.error(e.msg || '')
+          this.spinnerLoading = false
         })
       },
       _rename (item, i) {
