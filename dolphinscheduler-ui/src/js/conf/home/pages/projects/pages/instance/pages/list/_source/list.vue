@@ -65,7 +65,7 @@
           </th>
         </tr>
         <tr v-for="(item, $index) in list" :key="item.id">
-          <td width="50"><x-checkbox v-model="item.isCheck" :disabled="item.state === 'RUNNING_EXEUTION'" @on-change="_arrDelChange"></x-checkbox></td>
+          <td width="50"><x-checkbox v-model="item.isCheck" :disabled="item.state === 'RUNNING_EXEUTION' || item.state === 'READY_STOP' || item.state === 'READY_PAUSE'" @on-change="_arrDelChange"></x-checkbox></td>
           <td width="50">
             <span>{{parseInt(pageNo === 1 ? ($index + 1) : (($index + 1) + (pageSize * (pageNo - 1))))}}</span>
           </td>
@@ -520,10 +520,9 @@
       _gantt (item) {
         this.$router.push({ path: `/projects/instance/gantt/${item.id}` })
       },
+
       _topCheckBoxClick (v) {
-        this.list.forEach((item, i) => {
-          this.$set(this.list[i], 'isCheck', v)
-        })
+        _.map(this.list , v => v.isCheck = v.state === 'RUNNING_EXEUTION' ? false : true)
         this._arrDelChange()
       },
       _arrDelChange (v) {
